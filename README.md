@@ -56,7 +56,7 @@ The skill only runs when you name it (`disable-model-invocation: true`). Say one
 ```markdown
 ## Council: Local AI brain under $5k
 
-1. **Mac Studio M4 Max 128GB** — WINNER
+1. **Mac Studio M4 Max 128GB** (WINNER)
    Trade-off: swap-on-demand for 70B, not resident dual-30B parallel.
 
 2. DGX Spark 128GB
