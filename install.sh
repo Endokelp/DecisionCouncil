@@ -40,7 +40,9 @@ run_skills_add 199-biotechnologies/claude-deep-research-skill --skill deep-resea
 
 echo ""
 echo "Done."
-echo "  Claude Code: restart session, then  /council <your question>"
-echo "  Cursor:      say  council this: <your question>"
-echo "  Companions:  /last30days  and  /deep-research  should also be available."
+echo "  Cursor:      ~/.cursor/skills/council  — restart Cursor, then:"
+echo "               council this: <your question>"
+echo "               or  /council <your question>  or  @council"
+echo "  Claude Code: ~/.claude/skills/council  — restart, then  /council <your question>"
+echo "  Companions:  last30days + deep-research skills should also be available."
 echo ""

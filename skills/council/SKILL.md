@@ -1,16 +1,79 @@
 ---
 name: council
-description: "Run a structured, evidence-based multi-agent debate (orchestrator + sub-agents with distinct lenses, Scout via /last30days, Fact Checker via /deep-research) to make a high-stakes, hard-to-reverse, or genuinely contested decision, then deliver a ranked recommendation with #1 clearly marked and dissent preserved. Use ONLY when the user explicitly asks for a council/debate/multi-perspective decision, or for an expensive purchase/architecture/strategy call worth the tokens. Token-aware by design. Do NOT use for cheap or easily reversible decisions."
+description: >-
+  Run a structured multi-agent debate (Scout, Advocate, Skeptic, Fact Checker) for
+  high-stakes, hard-to-reverse decisions and deliver a ranked recommendation with
+  #1 marked and dissent preserved. Use ONLY when the user says council this,
+  /council, run the council, pressure-test this, stress-test this, war room this,
+  debate this, or explicitly names this skill for an expensive purchase, architecture,
+  vendor, or strategy fork. Token-aware. Do NOT use for cheap or easily reversible
+  decisions.
 disable-model-invocation: true
 ---
 
 # The Council
 
-A disciplined, adversarial decision procedure inspired by [Karpathy's LLM Council](https://github.com/karpathy/llm-council) and community Claude skills — simplified so you don't wire up multi-model APIs yourself. One **orchestrator** (you, the main session) frames the question, spawns **sub-agents** with distinct lenses, uses **`/last30days`** and **`/deep-research`** only where they earn their tokens, seats a **Fact Checker**, surfaces real disagreement, and synthesizes a **ranked list with a clearly-marked #1** plus the condition that would change the answer.
+A disciplined, adversarial decision procedure inspired by [Karpathy's LLM Council](https://github.com/karpathy/llm-council). One **orchestrator** (you, the main session) frames the question, spawns **sub-agents** with distinct lenses, uses **`last30days`** and **`deep-research`** skills only where they earn their tokens, seats a **Fact Checker**, surfaces real disagreement, and synthesizes a **ranked list with a clearly-marked #1** plus the condition that would change the answer.
 
-Works in **Claude Code** (`/council`) and **Cursor** (invoke this skill when the user says "council this", "/council", "run the council", etc.).
+**Companion skills (install together):** [`last30days`](https://github.com/mvanhorn/last30days-skill) for recent social/web signal; [`deep-research`](https://github.com/199-biotechnologies/claude-deep-research-skill) for claim verification.
 
-**Companion skills (install together):** [`last30days`](https://github.com/mvanhorn/last30days-skill) for recent social/web signal; [`deep-research`](https://github.com/199-biotechnologies/claude-deep-research-skill) for claim verification. The bundled installer pulls both.
+## Cursor (primary)
+
+**Install:** `~/.cursor/skills/council/SKILL.md` (run `install.ps1` or `install.sh` from this repo).
+
+**Invoke** — user must name the skill or use a trigger phrase (this skill does not auto-load):
+
+- `council this: <question>`
+- `/council <question>` or `/council full <question>`
+- `run the council`, `pressure-test this`, `stress-test this`, `war room this`, `debate this`
+- `@council` or "use the council skill"
+
+**Sub-agents:** use the **`Task`** tool. Spawn each wave in **one message** with multiple parallel `Task` calls.
+
+| Role | `subagent_type` | `run_in_background` | Notes |
+|------|-----------------|---------------------|-------|
+| Scout, Advocate, Skeptic, Fact Checker | `generalPurpose` | `false` | Council waves must block until each agent returns |
+| Repo/file discovery only | `explore` | `false` | Use when Step 0 needs codebase context, not for debate personas |
+
+**Task prompt template** — give each sub-agent:
+
+1. Step-0 frame (decision, options, constraints, deciding metric)
+2. Prior wave output only (not full chat history)
+3. Role instructions + word cap
+4. "Return ranked top-N + list of factual claims for Fact Checker"
+
+**Example (Advocate + Skeptic in parallel):**
+
+```
+Task(description="Council Advocate", subagent_type="generalPurpose", run_in_background=false, prompt="...")
+Task(description="Council Skeptic", subagent_type="generalPurpose", run_in_background=false, prompt="...")
+```
+
+Do **not** spawn subagents for orchestrator synthesis — that stays inline in the main session.
+
+**Cursor anti-patterns (never):**
+
+- `run_in_background: true` for council waves — synthesis depends on completed persona output
+- `explore` for Advocate/Skeptic/Fact Checker — debate personas need `generalPurpose` + web search
+- Multiple sequential messages per wave — batch parallel `Task` calls in **one** orchestrator turn
+- Passing full chat history into sub-agent prompts — Step-0 frame + prior wave only
+
+**Wave checklist (Cursor):**
+
+```
+Lite council:
+- [ ] Step 0 frame inline (or 1× explore Task if repo context needed)
+- [ ] 1× Task Scout
+- [ ] 2× Task Advocate + Skeptic (same message)
+- [ ] 1× Task Fact Checker
+- [ ] Chairman synthesis inline (no Task)
+```
+
+Install via repo: `npx skills add Endokelp/council-skill --skill council -g -y` or `install.ps1` / `install.sh`.
+
+## Claude Code
+
+Works with `/council`. Use the `Agent` tool instead of `Task`; same wave structure and token caps.
 
 ## When to use / when NOT to
 
@@ -19,75 +82,67 @@ Works in **Claude Code** (`/council`) and **Cursor** (invoke this skill when the
 
 ## The research model
 
-Each lens should argue from **its own evidence**, not vibes. Token discipline:
+Each lens argues from **its own evidence**, not vibes:
 
-1. **Scout** (one sub-agent) runs **`/last30days`** on the topic when recency/social signal matters, plus a lean baseline: option list, current/street prices or equivalents, headline specs, single deciding metric. Output ≤ ~600 words, URL per number. No opinion.
-2. **Advocate + Skeptic** (parallel sub-agents) each get the frame + Scout baseline. They do **≤5 lens-specific web searches** for NEW evidence the baseline lacks — not re-confirming prices/specs already in the brief.
-3. **Fact Checker** (one sub-agent) runs **`/deep-research`** in **Quick** mode on the contested claims both personas listed. Neutral verification: VERIFIED / PARTLY / FALSE / UNVERIFIABLE + cited source.
+1. **Scout** (1 `Task`) — run **`last30days`** when recency/social signal matters, plus lean baseline: option list, current/street prices, headline specs, single deciding metric. ≤ ~600 words, URL per number. No opinion.
+2. **Advocate + Skeptic** (2 parallel `Task`s) — each gets frame + Scout baseline; **≤5 lens-specific web searches** for NEW evidence only.
+3. **Fact Checker** (1 `Task`) — run **`deep-research`** in **Quick** mode on contested claims. VERIFIED / PARTLY / FALSE / UNVERIFIABLE + cited source. ≤ ~700 words.
 4. **Orchestrator** synthesizes inline as Neutral + Pragmatist + chairman — no extra agent.
 
-**Do not** load `/last30days` or `/deep-research` inside Advocate/Skeptic — those personas stay capped and search-light. Skills belong on Scout and Fact Checker only.
+**Do not** invoke `last30days` or `deep-research` inside Advocate/Skeptic — those personas stay search-light.
 
 ## Token discipline (mandatory)
 
-1. **Baseline once, angles many.** Scout establishes shared facts; personas research only their angle on top.
+1. **Baseline once, angles many.** Scout establishes shared facts; personas research only their angle.
 2. **Cap every sub-agent.** Scout ≤ ~600 words; each persona ≤ ~700 words; Fact Checker ≤ ~700 words. Cite URLs. No preamble.
-3. **One round by default.** Personas must **pre-empt the opposing side's strongest point** in a single response. Rebuttal round ONLY for unresolved factual conflict — continue **1–2 agents max**, never the whole council.
-4. **Orchestrator absorbs Neutral + Pragmatist + chairman** in lite mode — no extra cold agents.
-5. **Parallelize.** Spawn each wave's sub-agents in **one message** (multiple Task/Agent calls). Don't re-read full transcripts after completion — use their summaries.
-6. **Gather local context once.** Read PRD/repo/files yourself once; distil constraints into the Step-0 frame pasted into every prompt.
-
-## Sub-agent spawning
-
-| Host | Tool | Notes |
-|------|------|-------|
-| Claude Code | `Agent` | Sonnet for Scout/personas/Fact Checker; orchestrator stays Opus if available |
-| Cursor | `Task` | `subagent_type: generalPurpose` or `explore`; `run_in_background: false` for council waves |
-
-Give each sub-agent: Step-0 frame, prior wave output (not full chat history), role instructions, output cap, and "return ranked top-N + list of factual claims for Fact Checker."
+3. **One round by default.** Personas pre-empt the opposing side's strongest point. Rebuttal round ONLY for unresolved factual conflict — **1–2 agents max**.
+4. **Orchestrator absorbs Neutral + Pragmatist + chairman** in lite mode.
+5. **Parallelize.** Multiple `Task` calls in one message per wave. Use agent summaries, not full transcripts.
+6. **Gather local context once.** Read PRD/repo/files once; distil into Step-0 frame for every prompt.
 
 ## Modes
 
-- **`/council` (default = LITE):** Scout (`/last30days` + baseline) → Advocate + Skeptic (parallel) → Fact Checker (`/deep-research` Quick) → orchestrator synthesizes. ~4 sub-agents, one round.
-- **`/council full`:** Scout baseline → 5 personas (Optimist, Pessimist, Neutral Analyst, Pragmatist, plus parallel Fact Checker pass) → rebuttal on contested points only → synthesis. ~2–3× lite tokens. Use only for genuinely high-stakes contested decisions.
+- **LITE (default):** Scout → Advocate + Skeptic (parallel) → Fact Checker → orchestrator synthesis. ~4 sub-agents.
+- **FULL** (`/council full` or user says "full council"): Scout → 5 personas + Fact Checker → rebuttal on contested points only → synthesis. ~2–3× lite tokens.
 
 ---
 
 ## Procedure — LITE (default)
 
-**Step 0 — Frame (orchestrator, inline).** Read local context once. State in ≤6 bullets: decision, candidate options, hard constraints, single deciding metric. Paste this block into every sub-agent prompt.
+**Step 0 — Frame (orchestrator, inline).** Read local context once. ≤6 bullets: decision, candidate options, hard constraints, single deciding metric. Paste into every `Task` prompt.
 
-**Step 1 — Scout (1 sub-agent).** Invoke **`/last30days <topic>`** when the decision depends on what people are saying *right now* (products, vendors, trends, reputations). Distil into baseline: per-option price/spec/status, one-line note each, conflicts as ranges. ≤ ~600 words, URL per number, no opinion.
+**Step 1 — Scout (1 `Task`).** Invoke **`last30days`** when the decision depends on current social/web signal. Baseline: per-option price/spec/status, conflicts as ranges. ≤ ~600 words, URL per number, no opinion.
 
-**Step 2 — Advocate + Skeptic (2 sub-agents, parallel, one message).** Each gets Step-0 + Scout baseline; **≤5 lens-specific searches** for NEW evidence:
-- **Advocate:** strongest case for top 1–2 contenders — upside, trajectory. Name what would make its pick wrong; pre-empt Skeptic.
-- **Skeptic:** adversarial downside — risks, hidden costs, reliability traps. Name least-bad option; pre-empt Advocate.
+**Step 2 — Advocate + Skeptic (2 `Task`s, parallel, one message).** ≤5 lens-specific searches each:
+- **Advocate:** strongest case for top 1–2 contenders; pre-empt Skeptic.
+- **Skeptic:** adversarial downside; pre-empt Advocate.
 
-Both: ≤ ~700 words, cite URLs, end with ranked top-N + **specific factual claims** for Fact Checker.
+Both: ≤ ~700 words, cite URLs, ranked top-N + **factual claims** for Fact Checker.
 
-**Step 3 — Fact Checker (1 sub-agent).** Invoke **`/deep-research`** Quick on the claim list. Verify each (VERIFIED / PARTLY / FALSE / UNVERIFIABLE), flag hallucinations, correct overstatements. ≤ ~700 words.
+**Step 3 — Fact Checker (1 `Task`).** **`deep-research`** Quick on claim list. ≤ ~700 words.
 
-**Step 4 — Synthesize (orchestrator, inline).** Fold in Fact Checker corrections. At most one targeted follow-up if a decisive number is still contested. Deliver:
+**Step 4 — Synthesize (orchestrator, inline).** Fold in corrections. At most one targeted follow-up if a decisive number is still contested. Deliver:
 - **ranked list, #1 clearly marked**, one deciding trade-off per option
 - **strongest preserved dissent**
 - **"the condition that would change the answer"**
-- plain recommendation; if constraints are unsatisfiable, say so
 
 ## Procedure — FULL (explicit request only)
 
-Same Step 0 + Scout baseline. Then:
-- **Round 1 (5 agents, parallel):** Optimist, Pessimist, Neutral Analyst, Pragmatist — each capped lens-specific research on baseline; Fact Checker verifies strongest claims across all.
-- **Orchestrator surfaces real tensions** (factual disagreements only).
-- **Round 2 (rebuttal, contested agents only):** opposing claims answered; Fact Checker resolves decisive numbers.
-- **Synthesis:** final ranked list, #1 marked, dissent preserved, condition-that-would-change-it.
+Same Step 0 + Scout. Then Round 1 (5 parallel `Task`s): Optimist, Pessimist, Neutral Analyst, Pragmatist + Fact Checker on strongest claims. Rebuttal on contested agents only. Synthesis with #1 marked, dissent preserved.
 
-## Output contract (both modes)
+## Output contract
 
-Ranked list with **#1 unambiguous**; each entry one deciding line; main dissent visible; condition that would flip the verdict; honest "no option satisfies all constraints" when true. Chairman tone: decisive, evidence-bound, no hype, no doom.
+Ranked list with **#1 unambiguous**; each entry one deciding line; main dissent visible; condition that would flip the verdict; honest "no option satisfies all constraints" when true. Chairman tone: decisive, evidence-bound.
 
-## Triggers
+## Triggers (explicit invocation required)
 
-`council this`, `/council`, `run the council`, `pressure-test this`, `stress-test this`, `war room this`, `debate this`
+| Phrase | Mode |
+|--------|------|
+| `council this: …` | LITE |
+| `/council …` | LITE |
+| `/council full …` | FULL |
+| `run the council`, `pressure-test this`, `stress-test this`, `war room this`, `debate this` | LITE |
+| "use council skill", `@council` | LITE unless user says "full" |
 
 ## Credits
 

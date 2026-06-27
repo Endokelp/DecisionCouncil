@@ -42,6 +42,8 @@ Invoke-SkillsAdd "mvanhorn/last30days-skill -g -y"
 Invoke-SkillsAdd "199-biotechnologies/claude-deep-research-skill --skill deep-research -g -y"
 
 Write-Host "`nDone." -ForegroundColor Cyan
-Write-Host "  Claude Code: restart session, then  /council <your question>"
-Write-Host "  Cursor:      say  council this: <your question>"
-Write-Host "  Companions:  /last30days  and  /deep-research  should also be available.`n"
+Write-Host "  Cursor:      ~/.cursor/skills/council  — restart Cursor, then:"
+Write-Host "               council this: <your question>"
+Write-Host "               or  /council <your question>  or  @council"
+Write-Host "  Claude Code: ~/.claude/skills/council  — restart, then  /council <your question>"
+Write-Host "  Companions:  last30days + deep-research skills should also be available.`n"
