@@ -95,20 +95,6 @@ The market already has councils. They solve different problems.
 
 ---
 
-## What affaan-m got right (and what we kept)
-
-From [skills.sh/affaan-m/everything-claude-code/council](https://skills.sh/affaan-m/everything-claude-code/council):
-
-1. **One-line install on skills.sh** (`npx skills add ... --skill council`)
-2. **Explicit when to use / when not** table (we extend this with token discipline)
-3. **Fresh sub-agents with compact context only** (anti-anchoring)
-4. **Dissent visible in the final output** (not smoothed away)
-5. **Single-purpose skill** in a discoverable directory
-
-What we added: research companions, Fact Checker verification, ranked output, Lite vs Full modes, and first-class Cursor support.
-
----
-
 ## Cursor
 
 Install lands at `~/.cursor/skills/council/`. Invoke with `council this:` or `/council`.
