@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# Install council + complementary skills globally (Claude Code + Cursor)
-# Usage: curl -fsSL https://raw.githubusercontent.com/Endokelp/council-skill/main/install.sh | bash
+# Install DecisionCouncil + companion skills globally (Claude Code + Cursor)
+# Usage: curl -fsSL https://raw.githubusercontent.com/Endokelp/DecisionCouncil/main/install.sh | bash
 #    or: ./install.sh
 
 set -euo pipefail
@@ -22,17 +22,17 @@ install_council() {
 }
 
 echo ""
-echo "=== Council skill installer ==="
+echo "=== DecisionCouncil installer ==="
 
 install_council "$HOME/.claude/skills/council" "Claude Code"
 install_council "$HOME/.cursor/skills/council" "Cursor"
 
 echo ""
-echo "=== Complementary skills (global) ==="
+echo "=== Companion skills (global) ==="
 
 run_skills_add() {
   echo "  npx skills add $*"
-  npx --yes skills add "$@" || echo "  warning: npx skills add failed ($*). Install manually — see README."
+  npx --yes skills add "$@" || echo "  warning: npx skills add failed ($*). Install manually. See README."
 }
 
 run_skills_add mvanhorn/last30days-skill -g -y
@@ -40,9 +40,7 @@ run_skills_add 199-biotechnologies/claude-deep-research-skill --skill deep-resea
 
 echo ""
 echo "Done."
-echo "  Cursor:      ~/.cursor/skills/council  — restart Cursor, then:"
-echo "               council this: <your question>"
-echo "               or  /council <your question>  or  @council"
-echo "  Claude Code: ~/.claude/skills/council  — restart, then  /council <your question>"
-echo "  Companions:  last30days + deep-research skills should also be available."
+echo "  skills.sh:   npx skills add Endokelp/DecisionCouncil --skill council -g -y"
+echo "  Cursor:      restart, then  council this: <your question>"
+echo "  Claude Code: restart, then  /council <your question>"
 echo ""
