@@ -1,6 +1,6 @@
 # DecisionCouncil
 
-[![skills.sh](https://img.shields.io/badge/skills.sh-council-000?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiPjxwYXRoIGQ9Ik0xMiAyTDIgN2wxMCA1IDEwLTUtMTAtNXoiLz48L3N2Zz4=)](https://skills.sh/Endokelp/DecisionCouncil/council)
+[![skills.sh](https://img.shields.io/badge/skills.sh-council-000?style=for-the-badge)](https://skills.sh/Endokelp/DecisionCouncil/council)
 
 Most council skills give you opinions. **DecisionCouncil** gives you a ranked verdict, checked claims, and the dissent you would have missed.
 

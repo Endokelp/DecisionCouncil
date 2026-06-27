@@ -37,6 +37,7 @@ run_skills_add() {
 
 run_skills_add mvanhorn/last30days-skill -g -y
 run_skills_add 199-biotechnologies/claude-deep-research-skill --skill deep-research -g -y
+run_skills_add Endokelp/DecisionCouncil --skill council -g -y
 
 echo ""
 echo "Done."

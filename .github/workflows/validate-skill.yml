@@ -1,0 +1,27 @@
+name: Validate skill
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check SKILL.md frontmatter
+        run: |
+          test -f skills/council/SKILL.md
+          grep -q '^name: council' skills/council/SKILL.md
+          grep -q '^description:' skills/council/SKILL.md
+          grep -q 'disable-model-invocation: true' skills/council/SKILL.md
+
+      - name: Verify install scripts exist
+        run: |
+          test -f install.sh
+          test -f install.ps1
+          test -f LICENSE
+          test -f README.md

@@ -27,16 +27,17 @@ foreach ($t in $Targets) {
 Write-Host "`n=== Companion skills (global) ===" -ForegroundColor Cyan
 
 function Invoke-SkillsAdd {
-    param([string]$Args)
-    Write-Host "  npx skills add $Args" -ForegroundColor DarkGray
-    npx --yes skills add $Args
+    param([string[]]$SkillArgs)
+    Write-Host "  npx skills add $($SkillArgs -join ' ')" -ForegroundColor DarkGray
+    npx --yes skills add @SkillArgs
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "  npx skills add failed ($Args). Install manually. See README."
+        Write-Warning "  npx skills add failed. Install manually. See README."
     }
 }
 
-Invoke-SkillsAdd "mvanhorn/last30days-skill -g -y"
-Invoke-SkillsAdd "199-biotechnologies/claude-deep-research-skill --skill deep-research -g -y"
+Invoke-SkillsAdd @("mvanhorn/last30days-skill", "-g", "-y")
+Invoke-SkillsAdd @("199-biotechnologies/claude-deep-research-skill", "--skill", "deep-research", "-g", "-y")
+Invoke-SkillsAdd @("Endokelp/DecisionCouncil", "--skill", "council", "-g", "-y")
 
 Write-Host "`nDone." -ForegroundColor Cyan
 Write-Host "  skills.sh:   npx skills add Endokelp/DecisionCouncil --skill council -g -y"
