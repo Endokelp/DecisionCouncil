@@ -4,8 +4,7 @@ Thanks for helping improve DecisionCouncil.
 
 ## Quick fixes
 
-- README clarity, typos, install path issues: PR welcome
-- New example council outputs in `docs/examples/`: PR welcome (anonymize sensitive details)
+README clarity, typos, install path issues: PR welcome.
 
 ## Skill changes
 
@@ -17,10 +16,6 @@ Edit `skills/council/SKILL.md`. Keep:
 - Token caps on sub-agents
 
 Test in Cursor (`council this:`) or Claude Code (`/council`) before submitting.
-
-## Launch / marketing
-
-See `docs/GITHUB-GROWTH.md` and `docs/LAUNCH-POSTS.md`. Do not astroturf or spam subreddits.
 
 ## License
 

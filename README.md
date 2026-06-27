@@ -70,8 +70,6 @@ The skill only runs when you name it (`disable-model-invocation: true`). Say one
 **Condition that would change the answer:** verified firmware lifts Spark dense-70B above ~15 tok/s AND fixes sustained thermal shutdowns.
 ```
 
-Full anonymized examples: [docs/examples/](docs/examples/).
-
 ---
 
 ## Why not the other council skills?
@@ -116,10 +114,6 @@ Also installs to `~/.claude/skills/council/`. Use `/council` or `/council full`.
 ```
 DecisionCouncil/
 ├── skills/council/SKILL.md
-├── docs/
-│   ├── GITHUB-GROWTH.md      # launch playbook
-│   ├── COMPARISON.md         # full market comparison
-│   └── examples/             # sample council outputs
 ├── install.ps1
 ├── install.sh
 └── README.md
